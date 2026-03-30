@@ -29,9 +29,9 @@
 | RQ-MED-002 | Hide camera option when no camera detected | Implemented and tested | ADR-009 | 2026-03-29 |
 | RQ-MED-003 | Add document via file system only | Implemented and tested | ADR-009 | 2026-03-29 |
 | RQ-MED-004 | Media gallery edit mode with checkboxes for deletion | Implemented and tested | ADR-009 | 2026-03-29 |
-| RQ-TAG-001 | Tag management screen | Pending (UI) | -- | -- |
-| RQ-TAG-002 | Full CRUD on tags | Implemented (data layer, no UI) | ADR-004 | 2026-03-25 |
-| RQ-TAG-003 | Show affected item count before tag modification/deletion | Implemented (data layer, no UI) | ADR-004 | 2026-03-25 |
+| RQ-TAG-001 | Tag management screen | ADR authored -- implementation pending | ADR-010 | 2026-03-30 |
+| RQ-TAG-002 | Full CRUD on tags | ADR authored -- UI implementation pending | ADR-004, ADR-010 | 2026-03-30 |
+| RQ-TAG-003 | Show affected item count before tag modification/deletion | ADR authored -- UI implementation pending | ADR-004, ADR-010 | 2026-03-30 |
 | RQ-TAG-004 | Tag deletion cascades silently to all referencing items | Implemented (FK ON DELETE CASCADE) | ADR-003 | 2026-03-25 |
 | RQ-EXP-001 | Export selection as PDF report | Pending | -- | -- |
 | RQ-EXP-002 | Export selection as ZIP archive (PDF + media) | Pending | -- | -- |

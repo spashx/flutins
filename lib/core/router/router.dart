@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../presentation/home/home_screen.dart';
 import '../../presentation/item_form/item_form_screen.dart';
+import '../../presentation/tag_management/tag_management_screen.dart';
 import 'app_routes.dart';
 
 /// Application router singleton.
@@ -34,6 +35,12 @@ final GoRouter appRouter = GoRouter(
         final itemId = state.pathParameters['id']!;
         return ItemFormScreen(itemId: itemId);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.tagManagement,
+      name: 'tagManagement',
+      builder: (BuildContext context, GoRouterState state) =>
+          const TagManagementScreen(),
     ),
   ],
 );

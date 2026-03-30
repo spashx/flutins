@@ -36,6 +36,7 @@ abstract final class _Strings {
   static const String tooltipCancelSelection = 'Cancel selection';
   static const String tooltipDelete = 'Delete selected';
   static const String tooltipFilter = 'Select by...';
+  static const String tooltipManageTags = 'Manage tags';
   static const String selectedSuffix = ' selected';
 }
 
@@ -62,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: selectionState.isActive
           ? _buildSelectionAppBar(context, ref, selectionState, listAsync)
-          : _buildDefaultAppBar(),
+          : _buildDefaultAppBar(context),
       body: listAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -125,10 +126,17 @@ class HomeScreen extends ConsumerWidget {
   // AppBar builders -- D-29
   // -------------------------------------------------------------------------
 
-  /// Default AppBar with app title.
-  PreferredSizeWidget _buildDefaultAppBar() {
+  /// Default AppBar with app title and tag management icon -- D-43.
+  PreferredSizeWidget _buildDefaultAppBar(BuildContext context) {
     return AppBar(
       title: const Text(AppConstants.appName),
+      actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.label_outline),
+          tooltip: _Strings.tooltipManageTags,
+          onPressed: () => context.push(AppRoutes.tagManagement),
+        ),
+      ],
     );
   }
 
