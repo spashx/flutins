@@ -18,3 +18,5 @@ export 'repositories/item_repository_impl.dart';
 export 'repositories/media_repository_impl.dart';
 export 'repositories/tag_repository_impl.dart';
 export 'services/pdf_export_service_impl.dart';
+export 'services/share_service_impl.dart';
+export 'services/zip_export_service_impl.dart';

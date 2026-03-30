@@ -66,8 +66,11 @@ dependencies:
   # D-47: PDF generation -- pure Dart, no native dependencies (RQ-EXP-001)
   pdf: ^3.11.1
 
-  # D-47: Print/share/preview companion to pdf package (RQ-EXP-003)
-  printing: ^5.14.1
+  # D-47: ZIP archive creation -- pure Dart (RQ-EXP-002)
+  archive: ^4.0.2
+
+  # D-47: Native OS share -- cross-platform share intent (RQ-EXP-003)
+  share_plus: ^10.1.4
 
 dev_dependencies:
   flutter_test:

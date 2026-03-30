@@ -38,8 +38,7 @@ abstract final class _Strings {
   static const String tooltipDelete = 'Delete selected';
   static const String tooltipFilter = 'Select by...';
   static const String tooltipManageTags = 'Manage tags';
-  static const String tooltipExport = 'Export selected as PDF';
-  static const String exportSuccess = 'PDF exported: ';
+  static const String tooltipExport = 'Export selected';
   static const String exportError = 'Export failed: ';
   static const String selectedSuffix = ' selected';
 }
@@ -69,11 +68,9 @@ class HomeScreen extends ConsumerWidget {
       if (!context.mounted) return;
       next.whenOrNull(
         data: (path) {
-          if (path != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${_Strings.exportSuccess}$path')),
-            );
-            ref.read(selectionNotifierProvider.notifier).cancel();
+          if (path != null && prev is AsyncLoading) {
+            // Navigate to export screen for ZIP / share actions
+            context.push(AppRoutes.export);
           }
         },
         error: (err, _) {
@@ -182,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
       title: Text('${selectionState.count}${_Strings.selectedSuffix}'),
       actions: <Widget>[
         IconButton(
-          icon: const Icon(Icons.picture_as_pdf_outlined),
+          icon: const Icon(Icons.ios_share_outlined),
           tooltip: _Strings.tooltipExport,
           onPressed: selectionState.count > 0
               ? () => ref

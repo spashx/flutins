@@ -10,5 +10,9 @@
   "dart.flutterSdkPath": "C:\\dev\\tools\\flutter\\flutter",
 
   // Recommended: use the Flutter tasks below instead of CMake tasks
-  "task.allowAutomaticTasks": "on"
+  "task.allowAutomaticTasks": "on",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "spashx",
+    "projectKey": "spashx_flutins"
+  }
 }

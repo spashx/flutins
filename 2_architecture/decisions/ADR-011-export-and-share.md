@@ -2,7 +2,7 @@
 
 # ADR-011: Export and Share
 
-- **Status:** Accepted (RQ-EXP-001 implemented; RQ-EXP-002 and RQ-EXP-003 pending)
+- **Status:** Accepted (all three requirements implemented: RQ-EXP-001, RQ-EXP-002, RQ-EXP-003)
 - **Date:** 2026-03-30
 - **Deciders:** Project stakeholder, AI review
 - **Requirement IDs affected:** RQ-EXP-001, RQ-EXP-002, RQ-EXP-003
@@ -48,7 +48,8 @@ Items are already selected when the user triggers export.
 | # | Package | Evaluation | Outcome |
 |---|---|---|---|
 | A | **`pdf`** (pub.dev `pdf: ^3.x`) | Dart-native PDF generation; no native dependencies; extensive layout API including text, images, tables; works on all platforms without FFI | **Accepted** |
-| B | **`printing`** (companion to `pdf`) | Adds print + share + preview capabilities; wraps native share/print on Android and Windows; needed for RQ-EXP-003 | **Accepted for RQ-EXP-003** |
+| B | **`printing`** (companion to `pdf`) | Adds print + share + preview capabilities; wraps native share/print on Android and Windows. **Attempted but rejected** -- the `pdfium` native build fails during CMake on Windows, breaking the Windows target. | **Rejected (build failure)** |
+| E | **`share_plus`** | Platform-channel share plugin; uses `Share.shareXFiles()` static API; no native CMake build; works on Windows and Android. | **Accepted for RQ-EXP-003** |
 | C | **`syncfusion_flutter_pdf`** | Feature-rich but requires a licence for commercial use | Rejected: licence cost |
 | D | **Custom HTML-to-PDF via a WebView** | PDF fidelity poor on desktop; extra WebView dependency | Rejected: complexity + fidelity |
 
@@ -56,7 +57,7 @@ Items are already selected when the user triggers export.
 
 | # | Package | Outcome |
 |---|---|---|
-| A | **`archive`** (pub.dev) | Pure Dart; no native dependencies; straightforward zip creation and extraction | **Reserved for RQ-EXP-002** |
+| A | **`archive`** (pub.dev) | Pure Dart; no native dependencies; straightforward zip creation and extraction | **Accepted for RQ-EXP-002** |
 | B | **`flutter_archive`** | Flutter plugin wrapping native zlib; adds native build complexity | Rejected: unnecessary native overhead |
 
 ### Alternatives considered for export entry point
@@ -91,7 +92,7 @@ The PDF report for RQ-EXP-001 must include:
 
 ## Decisions
 
-### D-47: Add `pdf` and `printing` dependencies (RQ-EXP-001 / RQ-EXP-003)
+### D-47: Dependencies -- `pdf`, `archive`, `share_plus` (RQ-EXP-001 / RQ-EXP-002 / RQ-EXP-003)
 
 **Decision:** Add to `pubspec.yaml`:
 
@@ -99,15 +100,22 @@ The PDF report for RQ-EXP-001 must include:
 # D-47: PDF generation (RQ-EXP-001)
 pdf: ^3.11.1
 
-# D-47: Print/share/preview companion to pdf package (RQ-EXP-003)
-printing: ^5.14.1
+# D-47: ZIP archive creation -- pure Dart (RQ-EXP-002)
+archive: ^4.0.2
+
+# D-47: Native OS share (RQ-EXP-003)
+share_plus: ^10.1.4
 ```
 
-`archive` is reserved for RQ-EXP-002 and added at that time.
+**Note:** `printing` was originally intended for RQ-EXP-003 but was removed
+because its `pdfium` dependency causes CMake build failures on Windows. It has
+been replaced by `share_plus`, which uses platform channels and does not require
+a native CMake build.
 
 **Consequences:**
-- Both packages are pure Dart with no native dependencies on Windows.
-- `printing` on Android uses platform channels for the share intent.
+- `pdf` and `archive` are pure Dart; no native dependencies on Windows.
+- `share_plus` uses platform channels (no CMake native build); works on Windows
+  and Android.
 
 ---
 
@@ -263,24 +271,35 @@ cross-cutting change to the router.
 
 **Requirements covered:** RQ-EXP-001
 
-### Phase 2 -- ZIP archive (RQ-EXP-002) -- future
+### Phase 2 -- ZIP archive (RQ-EXP-002) -- COMPLETE
 
 | Step | Artifact | Description |
 |---|---|---|
-| 2.1 | `pubspec.yaml` | Add `archive` dependency |
+| 2.1 | `pubspec.yaml` | Add `archive: ^4.0.2` dependency |
 | 2.2 | `zip_export_service.dart` | Domain interface |
-| 2.3 | `zip_export_service_impl.dart` | Implementation: copy PDF + media into zip |
+| 2.3 | `zip_export_service_impl.dart` | Implementation: PDF + media per item in `media/<name>/` folders |
 | 2.4 | `export_providers.dart` | `zipExportServiceProvider` |
-| 2.5 | `export_notifier.dart` | Implement `exportZip()` method |
-| 2.6 | `export_screen.dart` | Add "Export ZIP" action |
-| 2.7 | Tests | Unit tests for `ZipExportServiceImpl` and `exportZip` |
+| 2.5 | `export_notifier.dart` | Implement `exportZip()` method; `_lastPdfPath` tracker |
+| 2.6 | `export_screen.dart` | "Export ZIP" button with `Tooltip` |
+| 2.7 | Tests | Unit tests for `exportZip`: success, no PDF, service error |
+| 2.8 | Verify | `flutter analyze` -- 0 issues; `flutter test` -- 132/132 green |
 
-### Phase 3 -- Native share (RQ-EXP-003) -- future
+**Requirements covered:** RQ-EXP-002
+
+### Phase 3 -- Native share (RQ-EXP-003) -- COMPLETE
 
 | Step | Artifact | Description |
 |---|---|---|
-| 3.1 | `export_screen.dart` | Add "Share" action calling `Printing.sharePdf()` (for PDF) or the `Share` plugin (for ZIP) |
-| 3.2 | Tests | Platform-channel mock tests |
+| 3.1 | `pubspec.yaml` | Add `share_plus: ^10.1.4` (replaces `printing`) |
+| 3.2 | `share_service.dart` | Domain interface |
+| 3.3 | `share_service_impl.dart` | `Share.shareXFiles()` via `share_plus` |
+| 3.4 | `export_providers.dart` | `shareServiceProvider` |
+| 3.5 | `export_notifier.dart` | `shareFile()` method |
+| 3.6 | `export_screen.dart` | "Share" button with `Tooltip` |
+| 3.7 | Tests | Unit tests for `shareFile`: success, no file |
+| 3.8 | Verify | Windows build clean; 132/132 tests green |
+
+**Requirements covered:** RQ-EXP-003
 
 ---
 
@@ -315,12 +334,13 @@ stateDiagram-v2
         }
     }
 
-    ExportSuccess --> ExportScreen : (optional -- future share/zip actions)
+        ExportSuccess --> ExportScreen : Push /export route (D-52)
 
     state ExportScreen {
         [*] --> ShowResult
-        ShowResult --> ShareAction : Tap Share (RQ-EXP-003 -- future)
-        ShowResult --> ZipAction : Tap Export ZIP (RQ-EXP-002 -- future)
+        ShowResult --> ShareAction : Tap Share (RQ-EXP-003)
+        ShowResult --> ZipAction : Tap Export ZIP (RQ-EXP-002)
+        ZipAction --> ShowResult : ZIP path stored in state
     }
 ```
 
@@ -328,6 +348,8 @@ stateDiagram-v2
 graph TD
     subgraph "Domain Layer"
         PdfSvcIface["PdfExportService (interface)\nD-48 -- RQ-EXP-001"]
+        ZipSvcIface["ZipExportService (interface)\nRQ-EXP-002"]
+        ShareSvcIface["ShareService (interface)\nRQ-EXP-003"]
         ItemRepo["ItemRepository\n(existing)"]
         TagRepo["TagRepository\n(existing)"]
         ItemEntity["Item entity"]
@@ -336,12 +358,14 @@ graph TD
 
     subgraph "Data Layer (new -- ADR-011)"
         PdfSvcImpl["PdfExportServiceImpl\nD-48: assembles PDF,\nembeds images,\nwrites file"]
-        ExportProviders["export_providers.dart\npdfExportServiceProvider (D-49)"]
+        ZipSvcImpl["ZipExportServiceImpl\narchive pkg: bundles PDF\n+ media per item"]
+        ShareSvcImpl["ShareServiceImpl\nshare_plus: Share.shareXFiles()"]
+        ExportProviders["export_providers.dart\npdfExportServiceProvider (D-49)\nzipExportServiceProvider\nshareServiceProvider"]
     end
 
     subgraph "Presentation Layer (new -- ADR-011)"
-        ExportNotifier["ExportNotifier\nAsyncNotifier(String?)\nD-50 -- exportPdf()"]
-        ExportScreen["ExportScreen\nD-52 -- /export route"]
+        ExportNotifier["ExportNotifier\nAsyncNotifier(String?)\nD-50 -- exportPdf()\nexportZip() / shareFile()"]
+        ExportScreen["ExportScreen\nD-52 -- /export route\nZIP + Share action buttons"]
         HomeScreenMod["HomeScreen\n(D-51: export icon added\nto selection AppBar)"]
     end
 
@@ -351,9 +375,15 @@ graph TD
     end
 
     PdfSvcImpl --> PdfSvcIface
+    ZipSvcImpl --> ZipSvcIface
+    ShareSvcImpl --> ShareSvcIface
     ExportProviders --> PdfSvcImpl
+    ExportProviders --> ZipSvcImpl
+    ExportProviders --> ShareSvcImpl
 
     ExportNotifier --> PdfSvcIface
+    ExportNotifier --> ZipSvcIface
+    ExportNotifier --> ShareSvcIface
     ExportNotifier --> ItemRepo
     ExportNotifier --> TagRepo
 

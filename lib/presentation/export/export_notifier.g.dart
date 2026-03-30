@@ -6,9 +6,9 @@ part of 'export_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$exportNotifierHash() => r'6c420f47e04e832344a8bfff918a14f43ed50a1a';
+String _$exportNotifierHash() => r'f05bf33ceec52bde7298ce7133c201ecb05496cf';
 
-/// Async controller for export operations -- RQ-EXP-001 / D-50.
+/// Async controller for export operations -- RQ-EXP-001 / RQ-EXP-002 / D-50.
 ///
 /// State is `AsyncValue<String?>`:
 /// - `AsyncData(null)` -- idle.
