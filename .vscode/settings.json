@@ -1,0 +1,14 @@
+{
+  // Prevent the CMake extension from treating windows/CMakeLists.txt as a
+  // top-level build target. Flutter manages CMake internally via `flutter run`
+  // and `flutter build windows`. Never invoke CMake directly on this project.
+  "cmake.sourceDirectory": "",
+  "cmake.configureOnOpen": false,
+  "cmake.buildDirectory": "",
+
+  // Flutter SDK path -- avoids relying on PATH being set in every terminal
+  "dart.flutterSdkPath": "C:\\dev\\tools\\flutter\\flutter",
+
+  // Recommended: use the Flutter tasks below instead of CMake tasks
+  "task.allowAutomaticTasks": "on"
+}
