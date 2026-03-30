@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../presentation/export/export_screen.dart';
 import '../../presentation/home/home_screen.dart';
 import '../../presentation/item_form/item_form_screen.dart';
 import '../../presentation/tag_management/tag_management_screen.dart';
@@ -41,6 +42,12 @@ final GoRouter appRouter = GoRouter(
       name: 'tagManagement',
       builder: (BuildContext context, GoRouterState state) =>
           const TagManagementScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.export,
+      name: 'export',
+      builder: (BuildContext context, GoRouterState state) =>
+          const ExportScreen(),
     ),
   ],
 );

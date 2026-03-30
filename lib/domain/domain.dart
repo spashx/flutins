@@ -9,5 +9,6 @@ export 'entities/tag.dart';
 export 'repositories/item_repository.dart';
 export 'repositories/media_repository.dart';
 export 'repositories/tag_repository.dart';
+export 'services/pdf_export_service.dart';
 export 'validation/item_validation.dart';
 export 'value_objects/sort_option.dart';

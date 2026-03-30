@@ -63,6 +63,12 @@ dependencies:
   # D-35: File picker -- document selection from file system (RQ-MED-003)
   file_picker: ^8.1.6
 
+  # D-47: PDF generation -- pure Dart, no native dependencies (RQ-EXP-001)
+  pdf: ^3.11.1
+
+  # D-47: Print/share/preview companion to pdf package (RQ-EXP-003)
+  printing: ^5.14.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

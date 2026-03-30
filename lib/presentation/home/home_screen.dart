@@ -16,6 +16,7 @@ import '../../domain/entities/item.dart';
 import 'item_list_provider.dart';
 import 'item_search_filter.dart';
 import 'search_notifier.dart';
+import '../export/export_notifier.dart';
 import 'selection_notifier.dart';
 import 'tag_list_provider.dart';
 import 'widgets/delete_confirmation_dialog.dart';
@@ -37,6 +38,9 @@ abstract final class _Strings {
   static const String tooltipDelete = 'Delete selected';
   static const String tooltipFilter = 'Select by...';
   static const String tooltipManageTags = 'Manage tags';
+  static const String tooltipExport = 'Export selected as PDF';
+  static const String exportSuccess = 'PDF exported: ';
+  static const String exportError = 'Export failed: ';
   static const String selectedSuffix = ' selected';
 }
 
@@ -59,6 +63,26 @@ class HomeScreen extends ConsumerWidget {
     final selectionState = ref.watch(selectionNotifierProvider);
     final query = ref.watch(searchNotifierProvider);
     final tagsAsync = ref.watch(tagListProvider);
+
+    // -- D-51: listen for export state changes and show feedback
+    ref.listen<AsyncValue<String?>>(exportNotifierProvider, (prev, next) {
+      if (!context.mounted) return;
+      next.whenOrNull(
+        data: (path) {
+          if (path != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${_Strings.exportSuccess}$path')),
+            );
+            ref.read(selectionNotifierProvider.notifier).cancel();
+          }
+        },
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${_Strings.exportError}$err')),
+          );
+        },
+      );
+    });
 
     return Scaffold(
       appBar: selectionState.isActive
@@ -157,6 +181,15 @@ class HomeScreen extends ConsumerWidget {
       ),
       title: Text('${selectionState.count}${_Strings.selectedSuffix}'),
       actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.picture_as_pdf_outlined),
+          tooltip: _Strings.tooltipExport,
+          onPressed: selectionState.count > 0
+              ? () => ref
+                  .read(exportNotifierProvider.notifier)
+                  .exportPdf(selectionState.selectedIds.toList())
+              : null,
+        ),
         IconButton(
           icon: const Icon(Icons.delete_outline),
           tooltip: _Strings.tooltipDelete,
