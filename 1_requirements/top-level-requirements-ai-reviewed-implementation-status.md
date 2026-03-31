@@ -36,6 +36,7 @@
 | RQ-EXP-001 | Export selection as PDF report | Implemented and tested | ADR-011 | 2026-03-30 |
 | RQ-EXP-002 | Export selection as ZIP archive (PDF + media) with native file save dialog and fallback | Implemented and tested | ADR-011, ADR-012 | 2026-03-31 |
 | RQ-EXP-003 | Share PDF or ZIP via native OS share mechanism | Implemented and tested | ADR-011 | 2026-03-31 |
+| RQ-NFR-002 | Professional-grade Material 3 UI with light/dark mode | Implemented and tested | ADR-013 | 2026-03-31 |
 
 ---
 

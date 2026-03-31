@@ -163,6 +163,11 @@ The system shall encrypt the SQLite3 database by default.
 ### RQ-SEC-001
 The system shall use a device-specific automatically generated encryption key, transparent to the user and managed by the OS keystore. No authentication screen shall be required at launch.
 
+## 3.4 User Interface
+
+### RQ-NFR-002
+The system shall provide a professional-grade user interface using Material Design 3 with a cohesive color scheme, consistent typography, and thoughtful component styling across all screens. The UI shall support both light and dark modes, adapting automatically to the operating system preference.
+
 ---
 
 # APPENDIX A -- AI REVIEW CHANGE LOG

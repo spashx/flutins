@@ -1,4 +1,4 @@
-﻿// RQ-NFR-001 / D-07 / D-08 / D-09 / D-11 / D-15
+﻿// RQ-NFR-001 / RQ-NFR-002 / D-07 / D-08 / D-09 / D-11 / D-15 / D-58 / D-59 / D-60 / D-61
 // Application entry point.
 //
 // Initialisation order (D-15):
@@ -39,7 +39,7 @@ Future<void> main() async {
   );
 }
 
-/// Root application widget -- RQ-NFR-001 / D-08.
+/// Root application widget -- RQ-NFR-001 / RQ-NFR-002 / D-08 / D-58 / D-61.
 class FlutinsApp extends StatelessWidget {
   const FlutinsApp({super.key});
 
@@ -48,12 +48,134 @@ class FlutinsApp extends StatelessWidget {
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
+      // D-58: Professional blue-grey seed color for light mode (RQ-NFR-002).
+      theme: _buildLightTheme(),
+      // D-61: Dark mode with adapted seed color; follows OS preference.
+      darkTheme: _buildDarkTheme(),
       // D-08: go_router provides the routing delegate and information parser.
       routerConfig: appRouter,
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Theme definitions -- D-58 / D-59 / D-60 / D-61 / RQ-NFR-002
+// ---------------------------------------------------------------------------
+
+/// Deep professional blue -- evokes trust and stability (D-58).
+const _lightSeedColor = Color(0xFF1A5276);
+
+/// Lighter blue for dark surfaces -- ensures readability (D-61).
+const _darkSeedColor = Color(0xFF5DADE2);
+
+/// Standard border radius for component styling (D-60).
+const _componentRadius = 12.0;
+
+ThemeData _buildLightTheme() {
+  final colorScheme = ColorScheme.fromSeed(
+    seedColor: _lightSeedColor,
+  );
+  return _applyComponentStyling(
+    ThemeData(
+      colorScheme: colorScheme,
+    ),
+    colorScheme,
+  );
+}
+
+ThemeData _buildDarkTheme() {
+  final colorScheme = ColorScheme.fromSeed(
+    seedColor: _darkSeedColor,
+    brightness: Brightness.dark,
+  );
+  return _applyComponentStyling(
+    ThemeData(
+      colorScheme: colorScheme,
+    ),
+    colorScheme,
+  );
+}
+
+/// Applies consistent component styling across light and dark themes (D-60).
+ThemeData _applyComponentStyling(ThemeData base, ColorScheme colorScheme) {
+  return base.copyWith(
+    // D-60: Elevated buttons -- rounded with consistent padding.
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_componentRadius),
+        ),
+      ),
+    ),
+    // D-60: Filled buttons -- rounded.
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_componentRadius),
+        ),
+      ),
+    ),
+    // D-60: Outlined buttons -- rounded.
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_componentRadius),
+        ),
+      ),
+    ),
+    // D-60: Text buttons -- rounded.
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_componentRadius),
+        ),
+      ),
+    ),
+    // D-60: Input fields -- outlined with rounded corners.
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(_componentRadius),
+      ),
+      filled: true,
+      fillColor: colorScheme.surfaceContainerLowest,
+    ),
+    // D-60: Cards -- rounded corners with subtle elevation.
+    cardTheme: CardThemeData(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_componentRadius),
+      ),
+    ),
+    // D-60: Dialogs -- rounded corners.
+    dialogTheme: DialogThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_componentRadius),
+      ),
+    ),
+    // D-60: Floating action button -- rounded.
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_componentRadius),
+      ),
+    ),
+    // D-60: Snackbar -- rounded.
+    snackBarTheme: SnackBarThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_componentRadius),
+      ),
+      behavior: SnackBarBehavior.floating,
+    ),
+    // D-60: AppBar -- surface container styling for depth.
+    appBarTheme: AppBarTheme(
+      centerTitle: true,
+      backgroundColor: colorScheme.surface,
+      foregroundColor: colorScheme.onSurface,
+      elevation: 0,
+      scrolledUnderElevation: 1,
+    ),
+  );
 }
