@@ -7,6 +7,8 @@
 // dialog accessible via the AppBar (D-64).
 // Model: Claude Opus 4.6
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -368,15 +370,16 @@ class _SearchBar extends ConsumerWidget {
 // Item thumbnail
 // ---------------------------------------------------------------------------
 
-/// Small thumbnail placeholder -- replaced by a real image when RQ-MED-001
-/// is implemented.
-// TODO(RQ-MED-001): show actual main photo thumbnail.
+/// Small thumbnail showing the item's main photo (RQ-MED-001).
+///
+/// Falls back to a placeholder icon when no main photo is attached.
 class _ItemThumbnail extends StatelessWidget {
   const _ItemThumbnail({required this.item});
 
   final Item item;
 
   static const double _size = 48.0;
+  static const double _borderRadius = 4.0;
 
   @override
   Widget build(BuildContext context) {
@@ -392,10 +395,19 @@ class _ItemThumbnail extends StatelessWidget {
       );
     }
 
-    return const SizedBox(
-      width: _size,
-      height: _size,
-      child: Icon(Icons.photo),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(_borderRadius),
+      child: Image.file(
+        File(mainPhoto.filePath),
+        width: _size,
+        height: _size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) => const SizedBox(
+          width: _size,
+          height: _size,
+          child: Icon(Icons.broken_image_outlined),
+        ),
+      ),
     );
   }
 }

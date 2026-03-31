@@ -46,4 +46,5 @@
 | Issue ID | Related Req | Summary | Root Cause | Fix | Date |
 |---|---|---|---|---|---|
 | ISS-001 | RQ-MED-001 | Main photo disappears after save and re-edit | `ItemRepositoryImpl.saveItem()` persisted item row, custom properties, and tag associations but never called `mediaDao` to persist media attachments. The load path read media correctly, but nothing was ever written. | Added `replaceAttachmentsForItem()` to `MediaDao` (delete-all + re-insert). Called it inside `saveItem()` transaction alongside properties and tags. Added 3 regression tests. | 2026-03-30 |
+| ISS-002 | RQ-MED-001 | Home screen thumbnail shows placeholder icon instead of actual main photo | `_ItemThumbnail` widget located the main photo `MediaAttachment` but rendered a static `Icons.photo` icon instead of loading the image from `filePath`. The TODO was left from the initial scaffold and never resolved. | Replaced the static icon with `Image.file(mainPhoto.filePath)` using `ClipRRect` for rounded corners, `BoxFit.cover` for proper scaling, and an `errorBuilder` fallback for missing files. Removed the TODO comment. | 2026-04-01 |
 
