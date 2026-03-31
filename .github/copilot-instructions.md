@@ -136,7 +136,7 @@ When a compile, lint, or test step fails:
 
 
 
-```
+```mermaid
 graph TD
     A["🚀 Session Kickoff"] --> A1["1. Load Instructions"]
     A1 --> A2["2. Read Stack-Specific Docs"]
@@ -189,4 +189,4 @@ graph TD
     style J fill:#f3e5f5
     style M fill:#c8e6c9
     style I fill:#ffcdd2
-    ```
+   
