@@ -1,10 +1,11 @@
-// RQ-EXP-001 / RQ-EXP-002 / RQ-EXP-003 / D-50
+// RQ-EXP-001 / RQ-EXP-002 / RQ-EXP-003 / D-50 / D-56
 // Riverpod AsyncNotifier for export operations (PDF, ZIP, share).
 // Owns the async state for the generated file path.
 // Model: Claude Opus 4.6
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/providers/export_providers.dart';
@@ -23,6 +24,13 @@ abstract final class ExportErrors {
   static const String noItemsFound = 'No items found for the given ids.';
   static const String noPdfPath = 'No PDF has been generated yet.';
   static const String noFilePath = 'No file has been generated yet.';
+}
+
+abstract final class _ExportFileNames {
+  _ExportFileNames._();
+
+  static const String prefix = 'flutins_export_';
+  static const String zipExtension = 'zip';
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +71,9 @@ class ExportNotifier extends _$ExportNotifier {
   }
 
   /// Creates a ZIP archive containing the last generated PDF and all media
-  /// files for the given [itemIds] -- RQ-EXP-002.
+  /// files for the given [itemIds]. Shows a native OS save dialog to let the
+  /// user choose the destination; falls back to the documents/home folder
+  /// if the dialog is unavailable or cancelled -- RQ-EXP-002 / D-56.
   Future<void> exportZip(List<String> itemIds) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -72,8 +82,25 @@ class ExportNotifier extends _$ExportNotifier {
       }
 
       final items = await _loadItems(itemIds);
+
+      // -- Resolve destination path via dialog + fallback (D-56)
+      final saveLocationSvc = ref.read(saveLocationServiceProvider);
+      final defaultFileName = _buildZipFileName(DateTime.now());
+      final chosenPath = await saveLocationSvc.requestSavePath(
+        defaultFileName: defaultFileName,
+        extension: _ExportFileNames.zipExtension,
+      );
+
+      final String targetPath;
+      if (chosenPath != null) {
+        targetPath = chosenPath;
+      } else {
+        final fallbackDir = await saveLocationSvc.getFallbackDirectory();
+        targetPath = p.join(fallbackDir, defaultFileName);
+      }
+
       final service = ref.read(zipExportServiceProvider);
-      return service.exportToZip(_lastPdfPath!, items);
+      return service.exportToZip(_lastPdfPath!, items, targetPath);
     });
   }
 
@@ -106,4 +133,15 @@ class ExportNotifier extends _$ExportNotifier {
     }
     return items;
   }
+
+  /// Builds a default ZIP file name with a timestamp -- D-56.
+  /// Example: `flutins_export_2026-03-31_130045.zip`
+  String _buildZipFileName(DateTime now) {
+    final timestamp =
+        '${now.year}-${_pad(now.month)}-${_pad(now.day)}'
+        '_${_pad(now.hour)}${_pad(now.minute)}${_pad(now.second)}';
+    return '${_ExportFileNames.prefix}$timestamp.${_ExportFileNames.zipExtension}';
+  }
+
+  String _pad(int n) => n.toString().padLeft(2, '0');
 }

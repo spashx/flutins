@@ -10,6 +10,7 @@ export 'repositories/item_repository.dart';
 export 'repositories/media_repository.dart';
 export 'repositories/tag_repository.dart';
 export 'services/pdf_export_service.dart';
+export 'services/save_location_service.dart';
 export 'services/share_service.dart';
 export 'services/zip_export_service.dart';
 export 'validation/item_validation.dart';

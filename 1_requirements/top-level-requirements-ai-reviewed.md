@@ -136,7 +136,7 @@ When the user confirms deletion of a tag, the system shall silently remove that 
 The system shall allow the user to export a selection of items as a PDF report including item photos and all properties.
 
 ### RQ-EXP-002
-The system shall allow the user to export a selection of items as a ZIP archive containing the PDF report and all associated media files.
+The system shall allow the user to export a selection of items as a ZIP archive containing the PDF report and all associated media files. The application shall ask the user via the operating system file manager a location where to store the archive. If not possible, the archive shall be saved into the user's document folder or home folder depending on the capabiltities of the operating system.
 
 ### RQ-EXP-003
 The system shall allow the user to share the generated PDF or ZIP using the native OS share mechanism (email, messaging applications, etc.).

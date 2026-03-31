@@ -34,7 +34,7 @@
 | RQ-TAG-003 | Show affected item count before tag modification/deletion | Implemented and tested | ADR-004, ADR-010 | 2026-03-30 |
 | RQ-TAG-004 | Tag deletion cascades silently to all referencing items | Implemented (FK ON DELETE CASCADE) | ADR-003 | 2026-03-25 |
 | RQ-EXP-001 | Export selection as PDF report | Implemented and tested | ADR-011 | 2026-03-30 |
-| RQ-EXP-002 | Export selection as ZIP archive (PDF + media) | Implemented and tested | ADR-011 | 2026-03-31 |
+| RQ-EXP-002 | Export selection as ZIP archive (PDF + media) with native file save dialog and fallback | Implemented and tested | ADR-011, ADR-012 | 2026-03-31 |
 | RQ-EXP-003 | Share PDF or ZIP via native OS share mechanism | Implemented and tested | ADR-011 | 2026-03-31 |
 
 ---

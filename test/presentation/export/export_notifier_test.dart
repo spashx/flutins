@@ -1,7 +1,7 @@
-// RQ-EXP-001 / D-50
-// Unit tests for ExportNotifier: verifies PDF export triggers the service
-// and handles error states. Uses a mock PdfExportService to avoid real
-// file I/O and PDF generation in tests.
+// RQ-EXP-001 / RQ-EXP-002 / D-50 / D-56
+// Unit tests for ExportNotifier: verifies PDF export, ZIP export with
+// save-location dialog + fallback, and share. Uses fake services to avoid
+// real file I/O in tests.
 // Model: Claude Opus 4.6
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +13,7 @@ import 'package:flutins/data/providers/repository_providers.dart';
 import 'package:flutins/domain/entities/item.dart';
 import 'package:flutins/domain/entities/tag.dart';
 import 'package:flutins/domain/services/pdf_export_service.dart';
+import 'package:flutins/domain/services/save_location_service.dart';
 import 'package:flutins/domain/services/share_service.dart';
 import 'package:flutins/domain/services/zip_export_service.dart';
 import 'package:flutins/presentation/export/export_notifier.dart';
@@ -29,7 +30,8 @@ const _itemCategory = 'Electronics';
 const _tagId = 'tag-001';
 const _tagName = 'Valuable';
 const _fakePdfPath = '/fake/path/flutins_export_2026-03-30.pdf';
-const _fakeZipPath = '/fake/path/flutins_export_2026-03-30.zip';
+const _fakeChosenPath = '/user/chosen/path/flutins_export_2026-03-30.zip';
+const _fakeFallbackDir = '/fake/fallback/documents';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -80,18 +82,52 @@ class _FakeZipExportService implements ZipExportService {
   int callCount = 0;
   String? lastPdfPath;
   List<Item>? lastItems;
+  String? lastTargetPath;
   bool shouldThrow = false;
   static const errorMessage = 'ZIP generation failed';
 
   @override
-  Future<String> exportToZip(String pdfPath, List<Item> items) async {
+  Future<String> exportToZip(
+    String pdfPath,
+    List<Item> items,
+    String targetPath,
+  ) async {
     callCount++;
     lastPdfPath = pdfPath;
     lastItems = items;
+    lastTargetPath = targetPath;
     if (shouldThrow) {
       throw StateError(errorMessage);
     }
-    return _fakeZipPath;
+    return targetPath;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mock SaveLocationService
+// ---------------------------------------------------------------------------
+
+class _FakeSaveLocationService implements SaveLocationService {
+  /// When non-null, requestSavePath returns this path (simulates user pick).
+  /// When null, simulates dialog cancelled / unavailable.
+  String? pathToReturn;
+  String fallbackDir = _fakeFallbackDir;
+  int requestCallCount = 0;
+  int fallbackCallCount = 0;
+
+  @override
+  Future<String?> requestSavePath({
+    required String defaultFileName,
+    required String extension,
+  }) async {
+    requestCallCount++;
+    return pathToReturn;
+  }
+
+  @override
+  Future<String> getFallbackDirectory() async {
+    fallbackCallCount++;
+    return fallbackDir;
   }
 }
 
@@ -126,6 +162,7 @@ ProviderContainer _makeContainer(
   _FakePdfExportService fakeService, {
   _FakeZipExportService? zipService,
   _FakeShareService? shareService,
+  _FakeSaveLocationService? saveLocationService,
 }) {
   return ProviderContainer(
     overrides: [
@@ -135,6 +172,8 @@ ProviderContainer _makeContainer(
         zipExportServiceProvider.overrideWithValue(zipService),
       if (shareService != null)
         shareServiceProvider.overrideWithValue(shareService),
+      if (saveLocationService != null)
+        saveLocationServiceProvider.overrideWithValue(saveLocationService),
     ],
   );
 }
@@ -312,15 +351,18 @@ void main() {
     late ExportNotifier notifier;
     late _FakePdfExportService fakePdfService;
     late _FakeZipExportService fakeZipService;
+    late _FakeSaveLocationService fakeSaveLocationService;
 
     setUp(() {
       db = createTestDatabase();
       fakePdfService = _FakePdfExportService();
       fakeZipService = _FakeZipExportService();
+      fakeSaveLocationService = _FakeSaveLocationService();
       container = _makeContainer(
         db,
         fakePdfService,
         zipService: fakeZipService,
+        saveLocationService: fakeSaveLocationService,
       );
       container.listen(exportNotifierProvider, (_, next) {});
       notifier = _readNotifier(container);
@@ -332,30 +374,67 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // RQ-EXP-002: exportZip -- success
+    // RQ-EXP-002: exportZip -- success with user-chosen path (D-56)
     // -----------------------------------------------------------------------
 
-    group('RQ-EXP-002 -- exportZip (success)', () {
+    group('RQ-EXP-002 -- exportZip (user picks save location)', () {
       test(
         'Given a PDF was already generated and items exist, '
-        'When exportZip is called with the item ids, '
-        'Then the notifier state contains the ZIP file path',
+        'When the user chooses a save location via the OS file dialog, '
+        'Then the ZIP is written to the user-chosen path',
         () async {
           // Given
           await _seedItem(container);
           await _seedTag(container);
           await notifier.exportPdf([_itemId]);
+          fakeSaveLocationService.pathToReturn = _fakeChosenPath;
 
           // When
           await notifier.exportZip([_itemId]);
 
           // Then
           final state = container.read(exportNotifierProvider);
-          expect(state.valueOrNull, _fakeZipPath);
+          expect(state.valueOrNull, _fakeChosenPath);
           expect(fakeZipService.callCount, 1);
           expect(fakeZipService.lastPdfPath, _fakePdfPath);
+          expect(fakeZipService.lastTargetPath, _fakeChosenPath);
           expect(fakeZipService.lastItems, hasLength(1));
           expect(fakeZipService.lastItems!.first.id, _itemId);
+          expect(fakeSaveLocationService.requestCallCount, 1);
+          expect(fakeSaveLocationService.fallbackCallCount, 0);
+        },
+      );
+    });
+
+    // -----------------------------------------------------------------------
+    // RQ-EXP-002: exportZip -- fallback when dialog cancelled (D-56)
+    // -----------------------------------------------------------------------
+
+    group('RQ-EXP-002 -- exportZip (dialog cancelled, fallback used)', () {
+      test(
+        'Given a PDF was already generated and items exist, '
+        'When the save dialog returns null (cancelled or unavailable), '
+        'Then the ZIP is written to the fallback documents directory',
+        () async {
+          // Given
+          await _seedItem(container);
+          await _seedTag(container);
+          await notifier.exportPdf([_itemId]);
+          fakeSaveLocationService.pathToReturn = null;
+
+          // When
+          await notifier.exportZip([_itemId]);
+
+          // Then
+          final state = container.read(exportNotifierProvider);
+          expect(state.hasValue, isTrue);
+          final path = state.valueOrNull!;
+          expect(path, startsWith(_fakeFallbackDir));
+          expect(path, endsWith('.zip'));
+          expect(fakeZipService.callCount, 1);
+          expect(fakeZipService.lastTargetPath, path);
+          expect(fakeSaveLocationService.requestCallCount, 1);
+          expect(fakeSaveLocationService.fallbackCallCount, 1);
         },
       );
     });
@@ -402,6 +481,7 @@ void main() {
           await _seedItem(container);
           await _seedTag(container);
           await notifier.exportPdf([_itemId]);
+          fakeSaveLocationService.pathToReturn = _fakeChosenPath;
           fakeZipService.shouldThrow = true;
 
           // When

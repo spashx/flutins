@@ -46,6 +46,27 @@ final zipExportServiceProvider = Provider<ZipExportService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ZipExportServiceRef = ProviderRef<ZipExportService>;
+String _$saveLocationServiceHash() =>
+    r'e58ce2a398c582cfa5b7486684f4ced71cd889fe';
+
+/// Provides the singleton [SaveLocationService] backed by
+/// [SaveLocationServiceImpl] -- D-57 / RQ-EXP-002.
+///
+/// Copied from [saveLocationService].
+@ProviderFor(saveLocationService)
+final saveLocationServiceProvider = Provider<SaveLocationService>.internal(
+  saveLocationService,
+  name: r'saveLocationServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$saveLocationServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SaveLocationServiceRef = ProviderRef<SaveLocationService>;
 String _$shareServiceHash() => r'1a8cd360c206f32e5d46d7bc7198acb81463692a';
 
 /// Provides the singleton [ShareService] backed by [ShareServiceImpl]
