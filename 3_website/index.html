@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flutins -- AI-Generated Asset Inventory App</title>
+  <meta name="description" content="Flutter asset inventory app for insurance justification, entirely AI-generated following a reproducible, human-defined engineering process with full requirements traceability.">
+  <style>
+    /* ───────────────────── Reset & Base ───────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --c-bg:        #0a0e17;
+      --c-surface:   #111827;
+      --c-surface-2: #1a2235;
+      --c-border:    #1e293b;
+      --c-border-hi: #334155;
+      --c-text:      #e2e8f0;
+      --c-text-dim:  #94a3b8;
+      --c-text-xdim: #64748b;
+      --c-accent:    #3b82f6;
+      --c-accent-2:  #8b5cf6;
+      --c-accent-3:  #06b6d4;
+      --c-green:     #22c55e;
+      --c-amber:     #f59e0b;
+      --c-red:       #ef4444;
+      --font-sans:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --radius:      12px;
+      --radius-sm:   8px;
+      --shadow:      0 4px 24px rgba(0,0,0,.35);
+      --max-w:       1120px;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--c-bg);
+      color: var(--c-text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ───────────────────── Typography ───────────────────── */
+    h1, h2, h3, h4 { font-weight: 700; line-height: 1.25; }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); letter-spacing: -0.03em; }
+    h2 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -0.02em; margin-bottom: 1rem; }
+    h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+
+    a { color: var(--c-accent); text-decoration: none; transition: color .2s; }
+    a:hover { color: var(--c-accent-3); }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: var(--c-surface-2);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--c-accent-3);
+    }
+
+    /* ───────────────────── Layout ───────────────────── */
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 1.5rem; }
+    section { padding: 5rem 0; }
+
+    /* ───────────────────── Nav ───────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 14, 23, .82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--c-border);
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-brand {
+      font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; gap: 1.75rem; list-style: none; }
+    .nav-links a { color: var(--c-text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--c-text); }
+    .nav-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+    .nav-hamburger svg { width: 24px; height: 24px; stroke: var(--c-text-dim); }
+
+    /* ───────────────────── Hero ───────────────────── */
+    .hero {
+      padding: 10rem 0 6rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(59,130,246,.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 70% 20%, rgba(139,92,246,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--c-surface-2); border: 1px solid var(--c-border);
+      border-radius: 99px; padding: 0.35rem 1rem; font-size: 0.82rem;
+      color: var(--c-text-dim); margin-bottom: 1.5rem; font-weight: 500;
+    }
+    .hero-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-green); }
+    .hero h1 { margin-bottom: 1.25rem; }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--c-accent), var(--c-accent-2), var(--c-accent-3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      max-width: 640px; margin: 0 auto 2.5rem;
+      color: var(--c-text-dim); font-size: 1.1rem; line-height: 1.8;
+    }
+
+    /* ───────────────────── Stat Pills ───────────────────── */
+    .stats {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .stat {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.5rem;
+      min-width: 160px; text-align: center;
+      transition: border-color .25s, transform .25s;
+    }
+    .stat:hover { border-color: var(--c-accent); transform: translateY(-2px); }
+    .stat-value {
+      font-size: 1.6rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--c-accent), var(--c-accent-3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--c-text-xdim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: .25rem; }
+
+    /* ───────────────────── Tech Stack Bar ───────────────────── */
+    .tech-bar {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem;
+    }
+    .tech-chip {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: var(--c-surface-2); border: 1px solid var(--c-border);
+      border-radius: 99px; padding: 0.4rem 0.9rem;
+      font-size: 0.8rem; font-weight: 500; color: var(--c-text-dim);
+      transition: border-color .2s;
+    }
+    .tech-chip:hover { border-color: var(--c-accent); color: var(--c-text); }
+
+    /* ───────────────────── Section Headers ───────────────────── */
+    .section-header {
+      text-align: center; margin-bottom: 3.5rem;
+    }
+    .section-header .overline {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--c-accent);
+      margin-bottom: 0.6rem;
+    }
+    .section-header p {
+      max-width: 580px; margin: 0.75rem auto 0;
+      color: var(--c-text-dim); font-size: 1rem;
+    }
+
+    /* ───────────────────── Process Section ───────────────────── */
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .process-step {
+      position: relative;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color .25s, transform .25s;
+    }
+    .process-step:hover { border-color: var(--c-accent); transform: translateY(-3px); }
+    .step-num {
+      position: absolute; top: -12px; left: 20px;
+      background: linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
+      color: #fff; font-size: 0.75rem; font-weight: 800;
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .process-step h3 { margin-top: 0.3rem; }
+    .process-step p { color: var(--c-text-dim); font-size: 0.92rem; }
+
+    /* ───────────────────── Flow Diagram ───────────────────── */
+    .flow-diagram {
+      display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+      gap: 0.5rem; margin: 3rem 0;
+      padding: 2rem;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+    }
+    .flow-node {
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border-hi);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 1rem;
+      font-size: 0.82rem; font-weight: 600;
+      text-align: center;
+      min-width: 100px;
+      transition: border-color .2s;
+    }
+    .flow-node:hover { border-color: var(--c-accent); }
+    .flow-node.human { border-left: 3px solid var(--c-accent); }
+    .flow-node.ai { border-left: 3px solid var(--c-accent-2); }
+    .flow-arrow { color: var(--c-text-xdim); font-size: 1.2rem; font-weight: 300; }
+    .flow-back {
+      width: 100%; text-align: center;
+      color: var(--c-text-xdim); font-size: 0.78rem;
+      margin-top: 0.5rem; font-style: italic;
+    }
+
+    /* ───────────────────── Rules Table ───────────────────── */
+    .rules-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .rules-table th, .rules-table td { padding: 0.85rem 1.1rem; text-align: left; }
+    .rules-table th {
+      background: var(--c-surface-2);
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--c-text-dim); font-weight: 700;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .rules-table td {
+      font-size: 0.9rem; border-bottom: 1px solid var(--c-border);
+      color: var(--c-text-dim);
+    }
+    .rules-table td:first-child { font-weight: 600; color: var(--c-text); white-space: nowrap; }
+    .rules-table tr:last-child td { border-bottom: none; }
+    .rules-table tr:hover td { background: rgba(59,130,246,.04); }
+
+    /* ───────────────────── Traceability Matrix ───────────────────── */
+    .matrix-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      background: var(--c-surface);
+    }
+    .matrix-table {
+      width: 100%; border-collapse: collapse; min-width: 680px;
+    }
+    .matrix-table th, .matrix-table td { padding: 0.6rem 1rem; text-align: left; }
+    .matrix-table th {
+      background: var(--c-surface-2);
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--c-text-dim); font-weight: 700;
+      border-bottom: 1px solid var(--c-border);
+      position: sticky; top: 0; z-index: 1;
+    }
+    .matrix-table td {
+      font-size: 0.85rem; border-bottom: 1px solid var(--c-border);
+      color: var(--c-text-dim);
+    }
+    .matrix-table td:first-child {
+      font-family: var(--font-mono); color: var(--c-accent); font-size: 0.8rem; white-space: nowrap;
+    }
+    .matrix-table td:last-child { font-family: var(--font-mono); color: var(--c-accent-2); font-size: 0.8rem; }
+    .matrix-table tr:last-child td { border-bottom: none; }
+    .matrix-table tr:hover td { background: rgba(59,130,246,.04); }
+
+    /* row group separators */
+    .matrix-table .group-row td {
+      background: var(--c-surface-2);
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--c-text-xdim); font-weight: 700; padding: 0.45rem 1rem;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    /* ───────────────────── Features ───────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color .25s, transform .25s;
+    }
+    .feature-card:hover { border-color: var(--c-accent); transform: translateY(-3px); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; margin-bottom: 1rem;
+    }
+    .feature-icon.blue   { background: rgba(59,130,246,.12); color: var(--c-accent); }
+    .feature-icon.purple { background: rgba(139,92,246,.12); color: var(--c-accent-2); }
+    .feature-icon.cyan   { background: rgba(6,182,212,.12);  color: var(--c-accent-3); }
+    .feature-icon.green  { background: rgba(34,197,94,.12);  color: var(--c-green); }
+    .feature-icon.amber  { background: rgba(245,158,11,.12); color: var(--c-amber); }
+    .feature-icon.red    { background: rgba(239,68,68,.12);  color: var(--c-red); }
+    .feature-card h3 { margin-bottom: 0.5rem; }
+    .feature-card ul {
+      list-style: none; padding: 0;
+      color: var(--c-text-dim); font-size: 0.9rem;
+    }
+    .feature-card li { padding: 0.2rem 0; padding-left: 1.1rem; position: relative; }
+    .feature-card li::before {
+      content: '';
+      position: absolute; left: 0; top: 0.65rem;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--c-accent);
+    }
+
+    /* ───────────────────── Reflections ───────────────────── */
+    .reflection-block {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      padding: 2rem 2.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .reflection-block h3 {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .reflection-block p, .reflection-block li {
+      color: var(--c-text-dim); font-size: 0.94rem; line-height: 1.8;
+    }
+    .reflection-block ul {
+      list-style: none; padding: 0; margin-top: 0.75rem;
+    }
+    .reflection-block li {
+      padding: 0.25rem 0 0.25rem 1.25rem; position: relative;
+    }
+    .reflection-block li::before {
+      content: ''; position: absolute; left: 0; top: 0.7rem;
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .reflection-worked li::before { background: var(--c-green); }
+    .reflection-friction li::before { background: var(--c-amber); }
+    .reflection-improve li::before { background: var(--c-accent); }
+
+    .callout {
+      border-left: 3px solid var(--c-accent-2);
+      background: rgba(139,92,246,.06);
+      padding: 1.25rem 1.5rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-top: 2rem;
+      font-size: 0.95rem;
+      color: var(--c-text-dim);
+      font-style: italic;
+    }
+
+    /* ───────────────────── Prompt Section ───────────────────── */
+    .prompt-block {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .prompt-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--c-surface-2);
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .prompt-header span { font-size: 0.78rem; color: var(--c-text-dim); font-weight: 600; }
+    .prompt-body {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      line-height: 1.9;
+      color: var(--c-text-dim);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 460px;
+      overflow-y: auto;
+    }
+
+    /* ───────────────────── Footer ───────────────────── */
+    footer {
+      border-top: 1px solid var(--c-border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--c-text-xdim);
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--c-text-dim); }
+    footer .heart { color: var(--c-red); }
+
+    /* ───────────────────── Responsive ───────────────────── */
+    @media (max-width: 768px) {
+      section { padding: 3.5rem 0; }
+      .hero { padding: 7rem 0 4rem; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: block; }
+      nav.open .nav-links {
+        display: flex; flex-direction: column;
+        position: absolute; top: 60px; left: 0; right: 0;
+        background: rgba(10, 14, 23, .96);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--c-border);
+        padding: 1rem 1.5rem; gap: 1rem;
+      }
+      .stats { gap: 0.75rem; }
+      .stat { min-width: 130px; padding: 1rem; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .reflection-block { padding: 1.5rem; }
+    }
+
+    /* ───────────────────── Animations ───────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate { opacity: 0; }
+    .animate.visible { animation: fadeUp .6s ease forwards; }
+    .animate.d1 { animation-delay: .1s; }
+    .animate.d2 { animation-delay: .2s; }
+    .animate.d3 { animation-delay: .3s; }
+    .animate.d4 { animation-delay: .4s; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ────────────── Nav ────────────── -->
+  <nav>
+    <div class="container">
+      <span class="nav-brand">Flutins</span>
+      <ul class="nav-links">
+        <li><a href="#process">Process</a></li>
+        <li><a href="#matrix">Traceability</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#reflections">Reflections</a></li>
+        <li><a href="#prompt">Prompt</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="Toggle navigation" onclick="this.closest('nav').classList.toggle('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6"  x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ────────────── Hero ────────────── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-tag"><span class="dot"></span> 138 tests passing &middot; 0 issues</div>
+      <h1>Meet <span>Flutins</span></h1>
+      <p class="hero-sub">
+        An asset inventory application for insurance justification -- built entirely by AI
+        following a reproducible, human-defined engineering process.
+        Demonstrating that <strong>deterministic results</strong> are achievable
+        with Software Generative AI.
+      </p>
+
+      <div class="stats">
+        <div class="stat animate d1">
+          <div class="stat-value">35</div>
+          <div class="stat-label">Requirements</div>
+        </div>
+        <div class="stat animate d2">
+          <div class="stat-value">14</div>
+          <div class="stat-label">ADRs</div>
+        </div>
+        <div class="stat animate d3">
+          <div class="stat-value">65</div>
+          <div class="stat-label">Decisions</div>
+        </div>
+        <div class="stat animate d4">
+          <div class="stat-value">138</div>
+          <div class="stat-label">Tests</div>
+        </div>
+      </div>
+
+      <div class="tech-bar">
+        <span class="tech-chip">Flutter 3.x</span>
+        <span class="tech-chip">Dart 3.11</span>
+        <span class="tech-chip">Riverpod</span>
+        <span class="tech-chip">Drift ORM</span>
+        <span class="tech-chip">SQLCipher</span>
+        <span class="tech-chip">Material 3</span>
+        <span class="tech-chip">Windows</span>
+        <span class="tech-chip">Android</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────── Process ────────────── -->
+  <section id="process">
+    <div class="container">
+      <div class="section-header">
+        <span class="overline">The Process</span>
+        <h2>Human defines. AI executes. Every line is traceable.</h2>
+        <p>A structured collaboration loop where the human set the engineering rules, reviewed every decision, and steered direction. No code was written by hand.</p>
+      </div>
+
+      <!-- Flow diagram -->
+      <div class="flow-diagram">
+        <div class="flow-node human">Human writes<br>requirements</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node ai">AI reviews &amp;<br>structures (EARS)</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node human">Human<br>validates</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node ai">AI generates<br>ADR + diagrams</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node human">Human<br>reviews ADR</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node ai">AI implements<br>code + tests</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-node human">Human<br>verifies app</div>
+        <div class="flow-back">&larr;&larr;&larr; repeat for each requirement &larr;&larr;&larr;</div>
+      </div>
+
+      <!-- Steps -->
+      <div class="process-grid">
+        <div class="process-step animate">
+          <span class="step-num">1</span>
+          <h3>Requirements Draft</h3>
+          <p>The human wrote a one-page specification in French describing the desired application.</p>
+        </div>
+        <div class="process-step animate d1">
+          <span class="step-num">2</span>
+          <h3>AI Review</h3>
+          <p>Following <code>copilot-instructions.md</code>, the AI translated, restructured, and expanded the draft into 35 formal EARS requirements with unique IDs.</p>
+        </div>
+        <div class="process-step animate d2">
+          <span class="step-num">3</span>
+          <h3>ADR-001 Baseline</h3>
+          <p>The first Architecture Decision Record resolved five ambiguities: encryption strategy, custom property scope, export capability, camera detection, and tag cascade.</p>
+        </div>
+        <div class="process-step animate d3">
+          <span class="step-num">4</span>
+          <h3>Iterative Loop</h3>
+          <p>Applied to all 35 requirements in logical order: infrastructure, domain, UI, cross-cutting features, then polish. ADR generated, reviewed, implemented, verified, status updated.</p>
+        </div>
+        <div class="process-step animate d4">
+          <span class="step-num">5</span>
+          <h3>Full Traceability</h3>
+          <p>Every source file, test, and ADR references the requirement ID(s) it fulfills. No artifact exists without a traceable origin.</p>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <h3 style="margin: 3rem 0 1rem; text-align: center; color: var(--c-text-dim);">Engineering Rules Enforced</h3>
+      <table class="rules-table">
+        <thead>
+          <tr><th>Rule</th><th>How It Was Applied</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Plan before acting</td><td>Todo lists created and tracked for every task</td></tr>
+          <tr><td>Read before editing</td><td>Every file read in-session before modification</td></tr>
+          <tr><td>Verify after each step</td><td><code>flutter analyze</code> + <code>flutter test</code> after every change</td></tr>
+          <tr><td>EARS requirements</td><td>All 35 requirements written in EARS format</td></tr>
+          <tr><td>Unique IDs</td><td><code>RQ-&lt;FTR&gt;-&lt;NNN&gt;</code> on every requirement</td></tr>
+          <tr><td>ADR per decision</td><td>14 ADRs produced, each with Mermaid diagrams</td></tr>
+          <tr><td>Gherkin tests</td><td>All tests use Given / When / Then naming</td></tr>
+          <tr><td>No duplicated literals</td><td>Named constants in <code>_Strings</code> and <code>AppConstants</code></td></tr>
+          <tr><td>SOLID principles</td><td>Domain interfaces, dependency inversion via Riverpod</td></tr>
+          <tr><td>Error recovery</td><td>Root-cause analysis, one fix attempt, then stop and report</td></tr>
+          <tr><td>Task tiers (S/M/L)</td><td>Every task tiered before starting</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ────────────── Traceability Matrix ────────────── -->
+  <section id="matrix" style="background: var(--c-surface);">
+    <div class="container">
+      <div class="section-header">
+        <span class="overline">Traceability</span>
+        <h2>35 Requirements. 14 ADRs. Every link documented.</h2>
+      </div>
+
+      <div class="matrix-wrapper">
+        <table class="matrix-table">
+          <thead>
+            <tr><th>Requirement</th><th>Description</th><th>ADR(s)</th></tr>
+          </thead>
+          <tbody>
+            <tr class="group-row"><td colspan="3">Non-Functional &amp; Infrastructure</td></tr>
+            <tr><td>RQ-NFR-001</td><td>Flutter app targeting Windows and Android</td><td>ADR-002</td></tr>
+            <tr><td>RQ-DAT-001</td><td>Local SQLite3 database via Drift ORM</td><td>ADR-003</td></tr>
+            <tr><td>RQ-DAT-002</td><td>Encrypted database (SQLCipher)</td><td>ADR-003</td></tr>
+            <tr><td>RQ-SEC-001</td><td>OS-keystore encryption key</td><td>ADR-003</td></tr>
+            <tr><td>RQ-NFR-002</td><td>Professional Material 3 UI</td><td>ADR-013</td></tr>
+
+            <tr class="group-row"><td colspan="3">Item Properties &amp; CRUD</td></tr>
+            <tr><td>RQ-OBJ-001</td><td>Item entity with properties</td><td>ADR-004</td></tr>
+            <tr><td>RQ-OBJ-002</td><td>Item-tag association</td><td>ADR-004</td></tr>
+            <tr><td>RQ-OBJ-003</td><td>Per-item custom key/value properties</td><td>ADR-004</td></tr>
+            <tr><td>RQ-OBJ-004</td><td>Prevent deletion of mandatory properties</td><td>ADR-004</td></tr>
+            <tr><td>RQ-OBJ-005</td><td>Create new item</td><td>ADR-005</td></tr>
+            <tr><td>RQ-OBJ-006</td><td>Require mandatory properties before save</td><td>ADR-005</td></tr>
+            <tr><td>RQ-OBJ-007</td><td>Insert item at sort-order position</td><td>ADR-005</td></tr>
+            <tr><td>RQ-OBJ-008</td><td>Associate tag during create/edit</td><td>ADR-005</td></tr>
+            <tr><td>RQ-OBJ-009</td><td>Edit screen on item tap</td><td>ADR-006</td></tr>
+            <tr><td>RQ-OBJ-010</td><td>Delete selected items</td><td>ADR-004, ADR-007</td></tr>
+            <tr><td>RQ-OBJ-011</td><td>Deletion confirmation dialog</td><td>ADR-007</td></tr>
+
+            <tr class="group-row"><td colspan="3">Main Screen &amp; Search</td></tr>
+            <tr><td>RQ-SCR-001</td><td>Main screen item list</td><td>ADR-005</td></tr>
+            <tr><td>RQ-SCR-002</td><td>Sort by any property</td><td>ADR-005</td></tr>
+            <tr><td>RQ-SCR-003</td><td>Default sort: name ascending</td><td>ADR-005</td></tr>
+            <tr><td>RQ-SCR-004</td><td>Text search across all properties</td><td>ADR-008</td></tr>
+
+            <tr class="group-row"><td colspan="3">Multi-Selection</td></tr>
+            <tr><td>RQ-SEL-001</td><td>Long-press enters multi-selection</td><td>ADR-007</td></tr>
+            <tr><td>RQ-SEL-002</td><td>Cancel exits multi-selection</td><td>ADR-007</td></tr>
+            <tr><td>RQ-SEL-003</td><td>Filter-based bulk selection</td><td>ADR-007</td></tr>
+
+            <tr class="group-row"><td colspan="3">Media Management</td></tr>
+            <tr><td>RQ-MED-001</td><td>Add photo via camera or file system</td><td>ADR-009</td></tr>
+            <tr><td>RQ-MED-002</td><td>Hide camera when not detected</td><td>ADR-009</td></tr>
+            <tr><td>RQ-MED-003</td><td>Add document via file system</td><td>ADR-009</td></tr>
+            <tr><td>RQ-MED-004</td><td>Media gallery edit mode</td><td>ADR-009</td></tr>
+
+            <tr class="group-row"><td colspan="3">Tag Management</td></tr>
+            <tr><td>RQ-TAG-001</td><td>Tag management screen</td><td>ADR-010</td></tr>
+            <tr><td>RQ-TAG-002</td><td>Full CRUD on tags</td><td>ADR-004, ADR-010</td></tr>
+            <tr><td>RQ-TAG-003</td><td>Show affected item count</td><td>ADR-004, ADR-010</td></tr>
+            <tr><td>RQ-TAG-004</td><td>Tag deletion cascades</td><td>ADR-003</td></tr>
+
+            <tr class="group-row"><td colspan="3">Export &amp; Sharing</td></tr>
+            <tr><td>RQ-EXP-001</td><td>Export as PDF report</td><td>ADR-011</td></tr>
+            <tr><td>RQ-EXP-002</td><td>Export as ZIP with file dialog</td><td>ADR-011, ADR-012</td></tr>
+            <tr><td>RQ-EXP-003</td><td>Share via native OS mechanism</td><td>ADR-011</td></tr>
+
+            <tr class="group-row"><td colspan="3">About</td></tr>
+            <tr><td>RQ-ABT-001</td><td>About dialog with AI attribution</td><td>ADR-014</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────── Features ────────────── -->
+  <section id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="overline">Features</span>
+        <h2>Everything an insurance inventory needs.</h2>
+        <p>Comprehensive item management with encrypted storage, media handling, batch operations, and multi-format export.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card animate">
+          <div class="feature-icon blue">&#9998;</div>
+          <h3>Item Management</h3>
+          <ul>
+            <li>Create, edit, delete with mandatory and optional properties</li>
+            <li>Per-item custom key/value metadata</li>
+            <li>Reusable tags associable to any item</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d1">
+          <div class="feature-icon purple">&#9782;</div>
+          <h3>Main Screen</h3>
+          <ul>
+            <li>Scrollable list with photo thumbnails</li>
+            <li>Sort by any property, ascending or descending</li>
+            <li>Real-time text search across all fields</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d2">
+          <div class="feature-icon cyan">&#10003;</div>
+          <h3>Multi-Selection</h3>
+          <ul>
+            <li>Long-press to enter multi-selection mode</li>
+            <li>Filter-based bulk selection by criteria</li>
+            <li>Batch deletion with confirmation</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d3">
+          <div class="feature-icon amber">&#9878;</div>
+          <h3>Media Management</h3>
+          <ul>
+            <li>Camera or file picker for photos</li>
+            <li>File picker for documents</li>
+            <li>Gallery edit mode with selective deletion</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d4">
+          <div class="feature-icon green">&#9875;</div>
+          <h3>Tag Management</h3>
+          <ul>
+            <li>Full CRUD with affected item count</li>
+            <li>Cascade deletion across all items</li>
+            <li>Tag association during create/edit</li>
+          </ul>
+        </div>
+        <div class="feature-card animate">
+          <div class="feature-icon blue">&#9993;</div>
+          <h3>Export &amp; Share</h3>
+          <ul>
+            <li>PDF report with photos and all properties</li>
+            <li>ZIP archive with native file save dialog</li>
+            <li>Native OS share (email, messaging, etc.)</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d1">
+          <div class="feature-icon red">&#9888;</div>
+          <h3>Security</h3>
+          <ul>
+            <li>SQLCipher AES-256 encryption</li>
+            <li>Per-device key in OS keystore</li>
+            <li>Transparent -- no login required</li>
+          </ul>
+        </div>
+        <div class="feature-card animate d2">
+          <div class="feature-icon purple">&#9733;</div>
+          <h3>User Interface</h3>
+          <ul>
+            <li>Material Design 3 with blue color scheme</li>
+            <li>Light and dark mode (OS adaptive)</li>
+            <li>About dialog with AI attribution</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────── Reflections ────────────── -->
+  <section id="reflections" style="background: var(--c-surface);">
+    <div class="container">
+      <div class="section-header">
+        <span class="overline">Reflections</span>
+        <h2>What the AI thinks of this experience.</h2>
+        <p>Honest observations from Claude Opus 4.6 after building 35 requirements across 14 ADRs with strict traceability.</p>
+      </div>
+
+      <div class="reflection-block reflection-worked animate">
+        <h3><span style="color:var(--c-green);">&#11044;</span> What worked well</h3>
+        <ul>
+          <li><strong>Traceability changed everything.</strong> Every file header, test name, and ADR body references a requirement ID. When a test failed or a design question arose, tracing backwards from code to requirement to decision was instant. There was never a moment of "why does this code exist?"</li>
+          <li><strong>The ADR-first workflow prevented drift.</strong> Writing an ADR before touching code gave each implementation a clear scope, numbered decisions, and a diagram to follow. The human review step caught misunderstandings before any code was written.</li>
+          <li><strong>The iterative loop was genuinely productive.</strong> The cycle of requirement, ADR, human review, implement, verify, update status created a rhythm. By ADR-005, the patterns were established and repeatable.</li>
+          <li><strong>Named constants enforcement improved code quality.</strong> The "no duplicated literals" rule forced every string and number into named constants. This made refactoring straightforward and eliminated typo-class bugs.</li>
+        </ul>
+      </div>
+
+      <div class="reflection-block reflection-friction animate d1">
+        <h3><span style="color:var(--c-amber);">&#11044;</span> Friction points</h3>
+        <ul>
+          <li><strong>Test debugging was the hardest part.</strong> The Drift stream timer issue in the About dialog tests required three attempts and a complete approach change. I should have recognized the root cause faster.</li>
+          <li><strong>Gherkin test names are verbose.</strong> They read well in reports but are cumbersome in the IDE. Shorter formats or test IDs might be more practical.</li>
+          <li><strong>Barrel exports required manual updates.</strong> Every new file needed a corresponding export line. This is error-prone and could be automated.</li>
+        </ul>
+      </div>
+
+      <div class="reflection-block reflection-improve animate d2">
+        <h3><span style="color:var(--c-accent);">&#11044;</span> Next time improvements</h3>
+        <ul>
+          <li>Automate barrel exports with a code generator</li>
+          <li>Establish upfront widget test patterns for Drift (fake-override as default)</li>
+          <li>ADR templates as code to reduce formatting inconsistencies</li>
+          <li>Formal requirement dependency graph for implementation ordering</li>
+          <li>Performance testing under load (1000+ items with photos)</li>
+        </ul>
+      </div>
+
+      <div class="callout">
+        "This project demonstrates that an AI can follow a disciplined engineering process and produce production-grade code -- but only when the process itself is explicitly defined and enforced by the human. The <code>copilot-instructions.md</code> file was the real product. The code was the output."
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────── Prompt ────────────── -->
+  <section id="prompt">
+    <div class="container">
+      <div class="section-header">
+        <span class="overline">The Prompt</span>
+        <h2>The exact prompt that generated the README.</h2>
+        <p>Verbatim, unedited. This is what the human typed to produce the project documentation.</p>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span>prompt.txt</span>
+          <span style="color: var(--c-text-xdim);">natural language</span>
+        </div>
+        <div class="prompt-body">OK. The application seems complete. Congratulation. We demonstrate that following our process gives deterministic results. Now update the readme.md.
+1) First describe our process loop (I wrote the #file:top-level-requirements.draft.md , then we reviewed it following #file:copilot-instructions.md , you updated the requirements to #file:top-level-requirements-ai-reviewed.md and generated the first ADR. I revied the ADR-001. The we started with the first requirements, you generated the next ADR, I reviewed it, you implemented it, updated the #file:top-level-requirements-ai-reviewed-implementation-status.md , and so on.). describe how you followed the process into #file:copilot-instructions.md . add some diagram and keep a concise formulation. Add a table matrix with requirements and ADR.
+2) Then provide a summary of the features of the application we made together.
+3) finally give your thoughts of our whole experience, how you feel by using tracability everywhere during the implementation and what could be improved next time. Be honest in your feedback.
+4) Put the exact verbatim of this prompt at the end of the readme as code extract.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────── Footer ────────────── -->
+  <footer>
+    <div class="container">
+      <p>
+        <strong>Flutins</strong> &middot; Built with <span class="heart">&hearts;</span> by
+        <a href="https://github.com/spashx">spashx</a> &amp;
+        Claude Opus 4.6 &middot; GPL-3.0
+      </p>
+      <p style="margin-top: 0.4rem;">35 requirements &middot; 14 ADRs &middot; 65 decisions &middot; 138 tests &middot; 0 issues</p>
+    </div>
+  </footer>
+
+  <!-- ────────────── Scroll Animation ────────────── -->
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.animate');
+      if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('visible'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+</body>
+</html>
