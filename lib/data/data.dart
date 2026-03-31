@@ -13,6 +13,7 @@ export 'mappers/media_attachment_mapper.dart';
 export 'mappers/tag_mapper.dart';
 export 'providers/database_providers.dart';
 export 'providers/export_providers.dart';
+export 'providers/package_info_provider.dart';
 export 'providers/repository_providers.dart';
 export 'repositories/item_repository_impl.dart';
 export 'repositories/media_repository_impl.dart';
