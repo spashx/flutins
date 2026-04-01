@@ -45,7 +45,9 @@ dependencies:
 
   # D-13: SQLCipher engine -- AES-256 page-level encryption (RQ-DAT-002)
   # Replaces plain SQLite on Android and Windows; do NOT add sqlite3_flutter_libs.
-  sqlcipher_flutter_libs: ^0.7.0
+  # v0.6.x bundles libsqlcipher.so for Android and Windows (ISS-003).
+  # v0.7.0 is a tombstone package with no native libraries -- do NOT upgrade.
+  sqlcipher_flutter_libs: ^0.6.0
 
   # D-14: OS keystore abstraction -- Android Keystore + Windows DPAPI (RQ-SEC-001)
   flutter_secure_storage: ^9.2.2
